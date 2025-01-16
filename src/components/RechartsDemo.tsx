@@ -45,7 +45,7 @@ export function RechartsDemo() {
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          {/* <CartesianGrid strokeDasharray="3 3" /> */}
           <XAxis
             dataKey="date"
             scale="time"
