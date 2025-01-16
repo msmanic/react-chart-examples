@@ -45,7 +45,7 @@ export function RechartsDemo() {
             bottom: 5,
           }}
         >
-          {/* <CartesianGrid strokeDasharray="3 3" /> */}
+          <CartesianGrid vertical={false} />
           <XAxis
             dataKey="date"
             scale="time"
@@ -76,6 +76,7 @@ export function RechartsDemo() {
             stroke="#8884d8"
             strokeWidth={2}
             legendType="none"
+            dot={false}
           />
           <Line
             name="Widget Load"
@@ -85,6 +86,7 @@ export function RechartsDemo() {
             stroke="#82ca9d"
             strokeWidth={2}
             legendType="none"
+            dot={false}
           />
         </LineChart>
       </ResponsiveContainer>
