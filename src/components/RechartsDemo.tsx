@@ -11,6 +11,7 @@ import {
 import { add, differenceInCalendarDays, format } from "date-fns";
 import { numberFormatter } from "../constants";
 import { sampleData } from "../data";
+import { useMemo, useState } from "react";
 
 const getTicks = (startDate: Date, endDate: Date) => {
   const diffDays = differenceInCalendarDays(endDate, startDate);
@@ -32,11 +33,26 @@ const startDate = new Date(2024, 9, 31);
 const endDate = new Date(2024, 11, 1);
 const ticks = getTicks(startDate, endDate);
 
+function getMaximumValue(data: { date: number; value: number }[]) {
+  return data.reduce((res, cur) => {
+    return Math.max(res, cur.value);
+  }, 0);
+}
+
 export function RechartsDemo() {
+  const height = 600;
+  const maxY = useMemo(() => {
+    const maxValue = Math.max(
+      getMaximumValue(sampleData.pageVisit),
+      getMaximumValue(sampleData.widgetLoad)
+    );
+    return Math.ceil(maxValue + maxValue / 10);
+  }, [sampleData]);
+
   return (
     <div>
       <h2>Recharts demo</h2>
-      <ResponsiveContainer width="100%" height={600}>
+      <ResponsiveContainer width="100%" height={height}>
         <LineChart
           margin={{
             top: 5,
@@ -60,13 +76,17 @@ export function RechartsDemo() {
             allowDuplicatedCategory={false}
           />
           <YAxis
+            domain={[0, maxY]}
             tickFormatter={(v) => {
               if (v) return numberFormatter.format(v);
               return "";
             }}
             tick={{ fontSize: "10px", color: "#003760" }}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip
+            content={<CustomTooltip maxY={maxY} chartHeight={height} />}
+            trigger="hover"
+          />
           <Legend />
           <Line
             name="Page Visit"
@@ -77,6 +97,8 @@ export function RechartsDemo() {
             strokeWidth={2}
             legendType="none"
             dot={false}
+            tooltipType="none"
+            isAnimationActive={false}
           />
           <Line
             name="Widget Load"
@@ -87,6 +109,8 @@ export function RechartsDemo() {
             strokeWidth={2}
             legendType="none"
             dot={false}
+            tooltipType="none"
+            isAnimationActive={false}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -98,16 +122,32 @@ type CustomTooltipProps = {
   active?: boolean;
   payload?: any;
   label?: any;
+  coordinate?: any;
+  maxY: number;
+  chartHeight: number;
 };
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
+function CustomTooltip({
+  active,
+  payload,
+  coordinate,
+  maxY,
+  chartHeight,
+}: CustomTooltipProps) {
   if (active && payload && payload.length) {
+    const y = ((chartHeight - coordinate.y) / chartHeight) * maxY;
+    const activePayload = payload.reduce((res: any, cur: any) => {
+      return Math.abs(res.payload.value - y) < Math.abs(cur.payload.value - y)
+        ? res
+        : cur;
+    });
+
     return (
       <div className="custom-tooltip">
-        <div>{payload[0].name}</div>
+        <div>{activePayload.name}</div>
         <div>
-          {format(new Date(parseInt(payload[0].payload.date)), "MMM d")} |{" "}
-          {payload[0].payload.value}
+          {format(new Date(activePayload.payload.date), "MMM d")} |{" "}
+          {activePayload.payload.value}
         </div>
       </div>
     );
